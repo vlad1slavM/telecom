@@ -15,16 +15,22 @@ session = Session()
 class EquipmentApi:
 
     @cherrypy.tools.json_out()
-    def index(self):
-        return {'message': 'Hi'}
-
-    @cherrypy.tools.json_out()
     def get_all_equipment(self, page: int = 1, page_size: int = 10):
+        """
+        Получить все оборудования
+        page и page_size передавать как query параметры
+        :param page: Страница
+        :param page_size: Размер страницы
+        """
         return database.get_all_equipments(session=session, page=int(page), page_size=int(page_size))
 
     @cherrypy.tools.json_out()
     def get_equipment(self, equipment_id: int):
-        """"""
+        """
+        Получить оборудования по ID
+        Принимает ID в url
+        :param equipment_id: ID оборудования
+        """
         equipment = database.get_equipment_by_id(session=session, equipment_id=equipment_id)
 
         if equipment:
@@ -34,6 +40,11 @@ class EquipmentApi:
 
     @cherrypy.tools.json_out()
     def get_equipment_type(self, equipment_type_id):
+        """
+        Получить тип оборудования по ID
+        Принимает ID в url
+        :param equipment_type_id: ID тип оборудования
+        """
         equipment_type = database.get_equipment_type_by_id(session=session, equipment_type_id=equipment_type_id)
 
         if equipment_type:
@@ -44,11 +55,14 @@ class EquipmentApi:
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
     def post_equipment(self):
+        """
+        Создать оборудование
+        Принимает на вход json в формате {'code': 1, 'serial_number': XXXXX}
+        """
         equipment_json = cherrypy.request.json
         code = equipment_json.get('code')
         serial_number = equipment_json.get('serial_number')
         my_response = database.post_equipment(session=session, code=code, serial_number=serial_number)
-        print(my_response)
         if my_response.code == 200:
             return 'OK'
         else:
@@ -57,6 +71,12 @@ class EquipmentApi:
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
     def update_equipment(self, equipment_id):
+        """
+        Обновить существующую запись об оборудовании
+        Принимает на вход equipment_id в url
+        И json в формате {'code': 1, 'serial_number': XXXXX}
+        :param equipment_id: ID оборудования
+        """
         equipment_json = cherrypy.request.json
         code = equipment_json.get('code')
         serial_number = equipment_json.get('serial_number')
@@ -69,6 +89,11 @@ class EquipmentApi:
 
     @cherrypy.tools.json_out()
     def delete_equipment(self, equipment_id):
+        """
+        Удалить запись об оборудовании
+        Принимает на вход ID существующего оборудования в url
+        :param equipment_id: ID оборудования
+        """
         my_response = database.delete_equipment(session=session, equipment_id=equipment_id)
         if my_response.code == 200:
             return 'OK'
@@ -84,7 +109,6 @@ if __name__ == '__main__':
     dispatcher.connect('get_equipment_type', '/api/equipment-type/:equipment_type_id',
                        EquipmentApi().get_equipment_type,
                        conditions={'method': 'GET'})
-    dispatcher.connect('root', '/', EquipmentApi().index)
     dispatcher.connect('get_all_equipment', '/api/equipment', EquipmentApi().get_all_equipment,
                        conditions={'method': ['GET']})
     dispatcher.connect('post_equipment', '/api/equipment', EquipmentApi().post_equipment,

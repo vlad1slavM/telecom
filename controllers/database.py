@@ -1,12 +1,19 @@
 from sqlalchemy.orm import Session
 
-from db import Equipment, EquipmentType
+from models.equipments import Equipment, EquipmentType
 
 from controllers.validadator import validate_serial_number
 from schema import MyResponse
 
 
-def get_all_equipments(session: Session, page: int = 1, page_size: int = 10):
+def get_all_equipments(session: Session, page: int = 1, page_size: int = 10) -> list[dict]:
+    """
+    Получить все оборудования
+    :param session: сессия
+    :param page: страница
+    :param page_size: размер страницы
+    """
+
     offset = (page - 1) * page_size
     equipment_query = session.query(Equipment).offset(offset).limit(page_size)
 
@@ -19,23 +26,40 @@ def get_all_equipments(session: Session, page: int = 1, page_size: int = 10):
     return equipments_list
 
 
-def get_equipment_by_id(session: Session, equipment_id: int):
-    """"""
+def get_equipment_by_id(session: Session, equipment_id: int) -> dict:
+    """
+    Получить оборудование по ID
+    :param session: сессия
+    :param equipment_id: ID оборудования
+    :return:
+    """
     equipment = session.query(Equipment).get(equipment_id)
     equipment_dict = {'id': equipment.id, 'code': equipment.code_equipment_type,
                       'serial': equipment.serial_number}
     return equipment_dict
 
 
-def get_equipment_type_by_id(session: Session, equipment_type_id: int):
+def get_equipment_type_by_id(session: Session, equipment_type_id: int) -> dict:
+    """
+    Получить тип оборудование по ID
+    :param session: сессия
+    :param equipment_type_id: ID типа оборудования
+    :return:
+    """
     equipment_type = session.query(EquipmentType).get(equipment_type_id)
     equipment_dict = {'id': equipment_type.id, 'code': equipment_type.type_name,
                       'mask': equipment_type.mask}
-    print(equipment_dict)
     return equipment_dict
 
 
 def post_equipment(session: Session, code: int, serial_number: str) -> MyResponse:
+    """
+    Создание новой записи
+    :param session: сессия
+    :param code: код типа оборудования
+    :param serial_number: серийный номер
+    :return: Объект MyResponse(code, message)
+    """
     session.begin()
     try:
         equipment_type = session.query(EquipmentType).filter(EquipmentType.id == code).one_or_none()
@@ -57,7 +81,14 @@ def post_equipment(session: Session, code: int, serial_number: str) -> MyRespons
 
 
 def update_equipment(session: Session, equipment_id: int, code: int, serial_number: str) -> MyResponse:
-    """"""
+    """
+    Обновление существующей записи
+    :param session: сессия
+    :param equipment_id: ID существующей записи
+    :param code: код типа оборудования
+    :param serial_number: серийный номер
+    :return: Объект MyResponse(code, message)
+    """
     equipment_type = session.query(EquipmentType).filter(EquipmentType.id == code).one_or_none()
     if equipment_type is None:
         return MyResponse(code=404, message=f"Тип с таким id: {code} не был найден")
@@ -77,6 +108,11 @@ def update_equipment(session: Session, equipment_id: int, code: int, serial_numb
 
 
 def delete_equipment(session: Session, equipment_id: int) -> MyResponse:
+    """
+    Удалить оборудование по айди
+    :param session: сессия
+    :param equipment_id: айди оборудования
+    """
     equipment = session.query(Equipment).filter(Equipment.id == equipment_id).one_or_none()
     if not equipment:
         return MyResponse(code=404, message=f"Тип с таким id: {equipment_id} не был найден")
