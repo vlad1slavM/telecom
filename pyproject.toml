@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "telecom"
+version = "0.1.0"
+description = ""
+authors = ["vlad1slavM <46625953+vlad1slavM@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cherrypy = "^18.8.0"
+pydantic = "^1.10.7"
+alembic = "^1.11.1"
+sqlalchemy = "^2.0.15"
+mysql-connector-python = "^8.0.33"
+routes = "^2.5.1"
+requests = "^2.31.0"
+urllib3 = "1.25.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
