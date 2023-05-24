@@ -1,10 +1,9 @@
-from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
 from db import Equipment, EquipmentType
-from sqlalchemy.orm.exc import NoResultFound
 
 from controllers.validadator import validate_serial_number
+from schema import MyResponse
 
 
 def get_all_equipments(session: Session, page: int = 1, page_size: int = 10):
@@ -22,34 +21,67 @@ def get_all_equipments(session: Session, page: int = 1, page_size: int = 10):
 
 def get_equipment_by_id(session: Session, equipment_id: int):
     """"""
-    try:
-        equipment = session.query(Equipment).get(equipment_id)
-        equipment_dict = {'id': equipment.id, 'code': equipment.code_equipment_type,
-                          'mask': equipment.serial_number}
-        return equipment_dict
-    except NoResultFound:
-        raise Exception(f"Оборудование с id: {equipment_id} не был найден")
+    equipment = session.query(Equipment).get(equipment_id)
+    equipment_dict = {'id': equipment.id, 'code': equipment.code_equipment_type,
+                      'serial': equipment.serial_number}
+    return equipment_dict
 
 
-def post_data(session: Session, code: int, serial_number: str):
+def get_equipment_type_by_id(session: Session, equipment_type_id: int):
+    equipment_type = session.query(EquipmentType).get(equipment_type_id)
+    equipment_dict = {'id': equipment_type.id, 'code': equipment_type.type_name,
+                      'mask': equipment_type.mask}
+    print(equipment_dict)
+    return equipment_dict
+
+
+def post_equipment(session: Session, code: int, serial_number: str) -> MyResponse:
     session.begin()
     try:
         equipment_type = session.query(EquipmentType).filter(EquipmentType.id == code).one_or_none()
         if equipment_type is None:
-            session.close()
-            raise Exception(f"Тип с таким id: {code} не был найден")
+            return MyResponse(code=404, message=f"Тип с таким id: {code} не был найден")
         mask = equipment_type.mask
 
         if not validate_serial_number(mask, serial_number):
-            session.close()
-            raise Exception(f"Invalid Serial Number: {serial_number}, does not match mask: {mask}")
+            return MyResponse(code=400, message=f"Не валидный serial_number: {serial_number},"
+                                                f"не соответствует маске: {mask}")
         equipment = Equipment(code_equipment_type=equipment_type.id, serial_number=serial_number)
         session.add(equipment)
         session.commit()
-        session.close()
-        equipment_dict = {'id': equipment.id,
-                          'code_equipment_type': equipment.code_equipment_type,
-                          'serial_number': equipment.serial_number}
-        return equipment_dict
+        return MyResponse(code=200, message="Ok")
     except Exception as e:
         session.rollback()
+    finally:
+        session.close()
+
+
+def update_equipment(session: Session, equipment_id: int, code: int, serial_number: str) -> MyResponse:
+    """"""
+    equipment_type = session.query(EquipmentType).filter(EquipmentType.id == code).one_or_none()
+    if equipment_type is None:
+        return MyResponse(code=404, message=f"Тип с таким id: {code} не был найден")
+
+    mask = equipment_type.mask
+    if not validate_serial_number(mask, serial_number):
+        return MyResponse(code=400, message=f"Не валидный serial_number: {serial_number},"
+                                            f"не соответствует маске: {mask}")
+
+    else:
+        equipment = session.query(Equipment).filter(Equipment.id == equipment_id).one()
+        equipment.code_equipment_type = code
+        equipment.serial_number = serial_number
+
+        session.commit()
+        return MyResponse(code=200, message="Ok")
+
+
+def delete_equipment(session: Session, equipment_id: int) -> MyResponse:
+    equipment = session.query(Equipment).filter(Equipment.id == equipment_id).one_or_none()
+    if not equipment:
+        return MyResponse(code=404, message=f"Тип с таким id: {equipment_id} не был найден")
+
+    session.delete(equipment)
+    session.commit()
+
+    return MyResponse(code=200, message="Ok")
