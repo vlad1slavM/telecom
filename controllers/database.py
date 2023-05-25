@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from models.equipments import Equipment, EquipmentType
 
 from controllers.validadator import validate_serial_number
-from schema import MyResponse
+from models.schema import MyResponse
 
 
 def get_all_equipments(session: Session, page: int = 1, page_size: int = 10) -> list[dict]:
@@ -98,13 +98,12 @@ def update_equipment(session: Session, equipment_id: int, code: int, serial_numb
         return MyResponse(code=400, message=f"Не валидный serial_number: {serial_number},"
                                             f"не соответствует маске: {mask}")
 
-    else:
-        equipment = session.query(Equipment).filter(Equipment.id == equipment_id).one()
-        equipment.code_equipment_type = code
-        equipment.serial_number = serial_number
+    equipment = session.query(Equipment).filter(Equipment.id == equipment_id).one()
+    equipment.code_equipment_type = code
+    equipment.serial_number = serial_number
 
-        session.commit()
-        return MyResponse(code=200, message="Ok")
+    session.commit()
+    return MyResponse(code=200, message="Ok")
 
 
 def delete_equipment(session: Session, equipment_id: int) -> MyResponse:

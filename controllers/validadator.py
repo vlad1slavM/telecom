@@ -2,7 +2,11 @@ import re
 
 
 def validate_serial_number(mask: str, serial_number: str) -> bool:
-
+    """
+    Валидатор серийного номера
+    :param mask: Маска оборудования
+    :param serial_number: Серийный номер
+    """
     pattern = ''
     regex_dict = {
         'N': '[0-9]',
@@ -17,7 +21,4 @@ def validate_serial_number(mask: str, serial_number: str) -> bool:
         else:
             return False
 
-    if re.match(pattern, serial_number):
-        return True
-    else:
-        return False
+    return bool(re.match(pattern, serial_number))

@@ -9,7 +9,7 @@ metadata = Base.metadata
 
 
 class EquipmentType(Base):
-
+    """Описание базы данный Тип оборудования"""
     __tablename__ = 'equipment_type'
 
     id = Column(INTEGER(11), primary_key=True)
@@ -18,7 +18,7 @@ class EquipmentType(Base):
 
 
 class Equipment(Base):
-
+    """Описание базы данный Оборудования"""
     __tablename__ = 'equipment'
 
     id = Column(INTEGER(11), primary_key=True)
